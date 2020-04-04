@@ -1,0 +1,101 @@
+it:
+  trestle:
+    title: "Trestle Admin"
+    footer: "Powered by Trestle"
+    version: "Versione"
+
+    helpers:
+      page_entries_info:
+        one_page:
+          display_entries:
+            zero: "Non ci sono %{entry_name}"
+            one: "Mostro <strong>1</strong> %{entry_name}"
+            other: "Mostro <strong>tutti %{count}</strong> %{entry_name}"
+
+        more_pages:
+          display_entries: "Mostro %{entry_name} <strong>%{first}&nbsp;-&nbsp;%{last}</strong> di <b>%{total}</b>"
+
+    onboarding:
+      welcome: "Benvenuto in Trestle"
+      no_admins: "Per iniziare, crea un admin con <code>app/admin</code>."
+      no_template: "Per personalizzare queto template, perfavore crea <code>%{path}</code>."
+      no_form: "Definisci un blocco form o crea un partial <code>_form.html</code>."
+
+    ui:
+      toggle_navigation: "Alterna navigazione"
+      toggle_sidebar: "Alterna sidebar"
+      toggle_dropdown: "Alterna dropdown"
+
+    dialog:
+      error: "Questa rischiesta non può essere completata."
+
+    confirmation:
+      title: "Sei sicuro?"
+      delete: "Elimina"
+      cancel: "Annulla"
+
+    file:
+      choose_file: "Seleziona un file..."
+      browse: "Naviga"
+
+  admin:
+    titles:
+      index: "Visualizza %{pluralized_model_name}"
+      new: "Nuovo %{model_name}"
+      edit: "Modifica %{model_name}"
+
+    buttons:
+      new: "Nuovo %{model_name}"
+      save: "Salva %{model_name}"
+      delete: "Elimina %{model_name}"
+      show: "Visualizza %{model_name}"
+      edit: "Modifica %{model_name}"
+      ok: "OK"
+
+    breadcrumbs:
+      home: "Home"
+
+    flash:
+      create:
+        success:
+          title: "Successo!"
+          message: "The %{lowercase_model_name} è stato correttamente creato."
+
+        failure:
+          title: "Attenzione!"
+          message: "Perfavore correggi gli errori sottostanti."
+
+      update:
+        success:
+          title: "Successo!"
+          message: "The %{lowercase_model_name} è stato correttamente aggiornato."
+
+        failure:
+          title: "Attenzione!"
+          message: "Please correct the errors below."
+
+      destroy:
+        success:
+          title: "Success!"
+          message: "Il %{lowercase_model_name} è stato correttamente eliminato."
+
+        failure:
+          title: "Attenzione!"
+          message: "Impossibile eliminare %{lowercase_model_name}."
+
+    table:
+      headers:
+        id: "ID"
+
+    form:
+      select:
+        prompt: "- Seleziona %{attribute_name} -"
+
+    format:
+      blank: "Nessuno"
+
+    datepicker:
+      formats:
+        date: "d/m/Y"
+        datetime: "d/m/Y h:i K"
+        time: "h:i K"
