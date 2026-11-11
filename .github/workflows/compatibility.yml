@@ -1,0 +1,74 @@
+name: Plugin compatibility
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ['3.3', '3.4']
+    env:
+      PG_BINDIR: /usr/lib/postgresql/16/bin
+      RUN_BROWSER_TESTS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: trestle
+      - uses: actions/checkout@v4
+        with:
+          repository: McRipper/trestle-auth
+          ref: master
+          path: trestle-auth
+      - uses: actions/checkout@v4
+        with:
+          repository: McRipper/trestle-auth-otp
+          ref: master
+          path: trestle-auth-otp
+      - uses: actions/checkout@v4
+        with:
+          repository: McRipper/trestle-search
+          ref: main
+          path: trestle-search
+      - uses: actions/checkout@v4
+        with:
+          repository: McRipper/trestle-active_storage
+          ref: master
+          path: trestle-active_storage
+      - uses: actions/checkout@v4
+        with:
+          repository: McRipper/trestle-good_job
+          ref: main
+          path: trestle-good_job
+      - uses: actions/checkout@v4
+        with:
+          repository: McRipper/trestle-mobility
+          ref: master
+          path: trestle-mobility
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler: '2.6.9'
+      - name: Install PostgreSQL and image processing
+        run: sudo apt-get update && sudo apt-get install -y postgresql-16 libvips-dev
+      - uses: browser-actions/setup-chrome@v1
+      - uses: actions/cache@v4
+        with:
+          path: trestle/compatibility/.gems
+          key: compatibility-${{ runner.os }}-ruby-${{ matrix.ruby }}-${{ hashFiles('trestle/compatibility/Gemfile.lock') }}
+      - name: Install test dependencies
+        run: trestle/compatibility/bin/run install
+      - name: Verify all plugins, both pipelines, browser and OTP concurrency
+        run: trestle/compatibility/bin/verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compatibility-ruby-${{ matrix.ruby }}
+          path: |
+            trestle/compatibility/logs/
+            trestle/compatibility/revisions*.json
+            trestle/compatibility/tmp/browser-failure.png

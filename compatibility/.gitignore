@@ -1,0 +1,13 @@
+.gems/
+.bundle/
+.bundle-user/
+logs/
+tmp/
+coverage/
+/app/public/assets*/
+/app/tmp/
+/snapshots/
+/revisions.json
+/revisions-after.json
+/RESULTS.md
+/.gems-*/

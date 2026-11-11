@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+suite_root="$(cd "$(dirname "$0")/.." && pwd)"
+workspace_root="${TRESTLE_WORKSPACE:-$(dirname "$suite_root")}"
+if [[ -f "$workspace_root/trestle.gemspec" ]]; then
+  workspace_root="$(dirname "$workspace_root")"
+fi
+cd "$workspace_root"
+mkdir -p "$suite_root/logs" "$suite_root/tmp"
+if [[ -n "${PG_BINDIR:-}" ]]; then
+  pg_bin="$PG_BINDIR"
+elif [[ -x /opt/homebrew/opt/postgresql@17/bin/pg_ctl ]]; then
+  pg_bin=/opt/homebrew/opt/postgresql@17/bin
+else
+  pg_bin="$(pg_config --bindir)"
+fi
+pg_port="${TRESTLE_PG_PORT:-55432}"
+started_postgres=0
+socket_dir=""
+cleanup() {
+  if [[ "$started_postgres" == 1 ]]; then
+    "$pg_bin/pg_ctl" -D "$suite_root/tmp/postgres" stop -m fast > "$suite_root/logs/postgres-stop.log" 2>&1
+  fi
+  if [[ -n "$socket_dir" ]]; then rmdir "$socket_dir" 2>/dev/null || true; fi
+}
+trap cleanup EXIT
+if [[ -z "${DATABASE_URL:-}" ]]; then
+  if [[ ! -f "$suite_root/tmp/postgres/PG_VERSION" ]]; then
+    "$pg_bin/initdb" -D "$suite_root/tmp/postgres" -A trust --no-locale -E UTF8 > "$suite_root/logs/postgres-init.log" 2>&1
+  fi
+  if ! "$pg_bin/pg_ctl" -D "$suite_root/tmp/postgres" status > /dev/null 2>&1; then
+    socket_dir="$(mktemp -d /tmp/trestle-pg.XXXXXX)"
+    "$pg_bin/pg_ctl" -D "$suite_root/tmp/postgres" -l "$suite_root/logs/postgres.log" -o "-p $pg_port -h 127.0.0.1 -k $socket_dir" start
+    started_postgres=1
+  fi
+  for database in trestle_rails81_test trestle_otp_test; do
+    if [[ "$("$pg_bin/psql" -h 127.0.0.1 -p "$pg_port" -d postgres -Atc "SELECT 1 FROM pg_database WHERE datname = '$database'")" != 1 ]]; then
+      "$pg_bin/createdb" -h 127.0.0.1 -p "$pg_port" "$database"
+    fi
+  done
+  export DATABASE_URL="postgresql://127.0.0.1:$pg_port/trestle_rails81_test"
+  export OTP_TEST_DATABASE_URL="postgresql://127.0.0.1:$pg_port/trestle_otp_test"
+fi
+if [[ -z "${OTP_TEST_DATABASE_URL:-}" ]]; then
+  echo 'Set OTP_TEST_DATABASE_URL to a separate trestle_otp_test* database.' >&2
+  exit 1
+fi
+export SE_CACHE_PATH="${SE_CACHE_PATH:-$suite_root/tmp/selenium}"
+export SE_AVOID_STATS=true
+"$suite_root/bin/run" check
+"$suite_root/bin/run" exec ruby "$suite_root/capture_revisions.rb" "$workspace_root" "$suite_root/revisions.json"
+
+run_logged() {
+  local log="$1"
+  shift
+  if ! "$@" > "$log" 2>&1; then
+    tail -80 "$log"
+    return 1
+  fi
+}
+
+for pipeline in sprockets-rails propshaft; do
+  export ASSET_PIPELINE="$pipeline"
+  "$suite_root/bin/run" exec ruby -rfileutils -e 'FileUtils.rm_rf(ARGV.fetch(0))' "$suite_root/app/public/assets"
+  for repo in trestle trestle-auth trestle-auth-otp trestle-search trestle-active_storage trestle-good_job trestle-mobility; do
+    log="$suite_root/logs/$repo-$pipeline.log"
+    repo_path="$workspace_root/$repo"
+    if [[ "$repo" == trestle-auth-otp ]]; then
+      repo_path="${TRESTLE_OTP_PATH:-$repo_path}"
+    fi
+    if [[ "$repo" == trestle || "$repo" == trestle-auth || "$repo" == trestle-auth-otp || "$repo" == trestle-search ]]; then
+      (cd "$repo_path" && run_logged "$log" env TRESTLE_TEST_GEM="$repo" "$suite_root/bin/run" exec rspec --format progress)
+    else
+      (cd "$repo_path" && run_logged "$log" env TRESTLE_TEST_GEM="$repo" "$suite_root/bin/run" exec rake)
+    fi
+    printf '%s / %s: ' "$pipeline" "$repo"
+    rg '^[1-9][0-9]* (examples|runs),' "$log"
+  done
+  run_logged "$suite_root/logs/integration-$pipeline.log" "$suite_root/bin/run" exec ruby "$suite_root/integration_test.rb"
+  tail -1 "$suite_root/logs/integration-$pipeline.log"
+  if [[ "${RUN_BROWSER_TESTS:-1}" == 1 ]]; then
+    run_logged "$suite_root/logs/browser-$pipeline.log" "$suite_root/bin/run" exec ruby "$suite_root/browser_test.rb" --name /test_browser_/
+    tail -1 "$suite_root/logs/browser-$pipeline.log"
+  fi
+  run_logged "$suite_root/logs/assets-$pipeline.log" "$suite_root/bin/run" exec ruby -r "$suite_root/app/config/environment" -rrake -e 'Rails.application.load_tasks; Rake::Task["assets:precompile"].invoke'
+  printf '%s / assets: OK\n' "$pipeline"
+done
+otp_path="${TRESTLE_OTP_PATH:-$workspace_root/trestle-auth-otp}"
+run_logged "$suite_root/logs/otp-concurrency.log" env DATABASE_URL="$OTP_TEST_DATABASE_URL" TRESTLE_TEST_GEM=trestle-auth-otp "$suite_root/bin/run" exec ruby "$otp_path/spec/concurrency/otp_concurrency.rb"
+tail -1 "$suite_root/logs/otp-concurrency.log"
+"$suite_root/bin/run" exec ruby "$suite_root/capture_revisions.rb" "$workspace_root" "$suite_root/revisions-after.json"
+"$suite_root/bin/run" exec ruby -rjson -e 'before = JSON.parse(File.read(ARGV[0])); after = JSON.parse(File.read(ARGV[1])); abort "Repository revisions changed during verification" unless before.fetch("repositories") == after.fetch("repositories")' "$suite_root/revisions.json" "$suite_root/revisions-after.json"
+echo 'All compatibility checks passed on unchanged repository revisions.'

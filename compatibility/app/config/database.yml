@@ -1,0 +1,3 @@
+test:
+  url: <%= ENV.fetch('DATABASE_URL', 'postgresql://127.0.0.1:55432/trestle_rails81_test') %>
+  pool: 5

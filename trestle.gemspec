@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://www.trestle.io"
   spec.license       = "LGPL-3.0-only"
 
-  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(bin|coverage|gemfiles|node_modules|spec|sandbox)/}) }
+  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(bin|compatibility|coverage|gemfiles|node_modules|spec|sandbox)/}) }
 
   spec.require_paths = ["lib"]
 

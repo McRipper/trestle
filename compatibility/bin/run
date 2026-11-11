@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+suite_root="$(cd "$(dirname "$0")/.." && pwd)"
+if [[ "${CI:-}" != true ]] && command -v rbenv > /dev/null 2>&1; then
+  export RBENV_VERSION="${RBENV_VERSION:-3.4.12}"
+  ruby_runner=(rbenv exec)
+else
+  ruby_runner=(env)
+fi
+default_gem_dir="$("${ruby_runner[@]}" ruby -e 'print Gem.default_dir')"
+export GEM_HOME="${TRESTLE_GEM_HOME:-$suite_root/.gems}"
+export GEM_PATH="$GEM_HOME:$default_gem_dir"
+export BUNDLE_USER_HOME="${BUNDLE_USER_HOME:-$suite_root/.bundle-user}"
+export BUNDLE_APP_CONFIG="${BUNDLE_APP_CONFIG:-$suite_root/.bundle}"
+export BUNDLE_GEMFILE="${BUNDLE_GEMFILE:-$suite_root/Gemfile}"
+export RAILS_ENV="${RAILS_ENV:-test}"
+export SKIP_COVERAGE_UPLOAD=1
+exec "${ruby_runner[@]}" bundle _2.6.9_ "$@"
