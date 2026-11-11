@@ -8,6 +8,7 @@ permissions:
 jobs:
   integration:
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -54,7 +55,17 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler: '2.6.9'
       - name: Install PostgreSQL and image processing
-        run: sudo apt-get update && sudo apt-get install -y postgresql-16 libvips-dev
+        timeout-minutes: 7
+        run: |
+          # Avoid the runner's Azure mirror list when its DNS is unavailable.
+          cat > "$RUNNER_TEMP/trestle-ubuntu.list" <<'APT'
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble-updates main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://security.ubuntu.com/ubuntu noble-security main universe
+          APT
+          apt_options=(-o "Dir::Etc::sourcelist=$RUNNER_TEMP/trestle-ubuntu.list" -o Dir::Etc::sourceparts=- -o Acquire::ForceIPv4=true -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
+          sudo timeout 180s apt-get "${apt_options[@]}" update
+          sudo timeout 180s env DEBIAN_FRONTEND=noninteractive apt-get "${apt_options[@]}" install -y --no-install-recommends postgresql-16 libvips42t64
       - uses: browser-actions/setup-chrome@v1
       - uses: actions/cache@v4
         with:
