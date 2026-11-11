@@ -34,6 +34,10 @@ jobs:
             ruby: '3.3'
           - gemfile: rails-8.0-propshaft
             ruby: '3.3'
+          - gemfile: rails-8.1
+            ruby: '3.3'
+          - gemfile: rails-8.1-propshaft
+            ruby: '3.4'
     runs-on: ubuntu-latest
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile

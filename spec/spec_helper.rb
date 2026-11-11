@@ -11,7 +11,7 @@ SimpleCov.start do
 end
 
 require 'coveralls'
-Coveralls.wear!
+Coveralls.wear! unless ENV["SKIP_COVERAGE_UPLOAD"] == "1"
 
 ENV['RAILS_ENV'] ||= 'test'
 require File.expand_path("../dummy/config/environment", __FILE__)
