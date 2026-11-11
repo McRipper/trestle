@@ -1,5 +1,20 @@
 require_relative 'integration_test'
 
+# Some Chrome versions report a detached document node as UnknownError instead
+# of StaleElementReferenceError. Normalize only that message so Capybara applies
+# its usual bounded element reload, without retrying a whole authentication flow.
+module CompatibilityDetachedChromeNode
+  def execute(...)
+    super
+  rescue Selenium::WebDriver::Error::UnknownError => error
+    raise unless error.message.include?('Node with given id does not belong to the document')
+
+    raise Selenium::WebDriver::Error::StaleElementReferenceError, error.message
+  end
+end
+
+Selenium::WebDriver::Remote::Bridge.prepend(CompatibilityDetachedChromeNode)
+
 Capybara.register_driver :compatibility_chrome do |app|
   options = Selenium::WebDriver::Chrome::Options.new
   options.add_argument '--headless'
