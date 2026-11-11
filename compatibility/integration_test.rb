@@ -28,7 +28,12 @@ class IntegrationTest < Minitest::Test
     fill_in 'Email', with: @user.email
     fill_in 'Password', with: 'password'
     click_button 'Login'
-    if token && page.has_current_path?('/admin/otp/challenge')
+    if @user.reload.otp_module?
+      assert_current_path '/admin/otp/challenge'
+    else
+      assert_current_path '/admin/administrators'
+    end
+    if token && @user.otp_module?
       fill_in 'Authentication code', with: token
       click_button 'Verify and sign in'
     end
