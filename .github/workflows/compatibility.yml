@@ -57,14 +57,21 @@ jobs:
       - name: Install PostgreSQL and image processing
         timeout-minutes: 7
         run: |
-          # Avoid the runner's Azure mirror list when its DNS is unavailable.
-          cat > "$RUNNER_TEMP/trestle-ubuntu.list" <<'APT'
-          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble main universe
-          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble-updates main universe
-          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://security.ubuntu.com/ubuntu noble-security main universe
+          # Use signed Ubuntu archives even when the runner's mirror DNS fails.
+          apt_options=(-o "Dir::Etc::sourcelist=$RUNNER_TEMP/trestle-ubuntu.list" -o Dir::Etc::sourceparts=- -o Acquire::ForceIPv4=true -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o APT::Update::Error-Mode=any)
+          updated=0
+          for mirror in https://mirrors.edge.kernel.org/ubuntu https://archive.ubuntu.com/ubuntu; do
+            cat > "$RUNNER_TEMP/trestle-ubuntu.list" <<APT
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] $mirror noble main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] $mirror noble-updates main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] $mirror noble-security main universe
           APT
-          apt_options=(-o "Dir::Etc::sourcelist=$RUNNER_TEMP/trestle-ubuntu.list" -o Dir::Etc::sourceparts=- -o Acquire::ForceIPv4=true -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
-          sudo timeout 180s apt-get "${apt_options[@]}" update
+            if sudo timeout 90s apt-get "${apt_options[@]}" update; then
+              updated=1
+              break
+            fi
+          done
+          [[ "$updated" == 1 ]]
           sudo timeout 180s env DEBIAN_FRONTEND=noninteractive apt-get "${apt_options[@]}" install -y --no-install-recommends postgresql-16 libvips42t64
       - uses: browser-actions/setup-chrome@v1
       - uses: actions/cache@v4
