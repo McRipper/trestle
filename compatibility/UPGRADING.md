@@ -20,6 +20,13 @@ gems with Bundler and commit the resulting Gemfile.lock. For reproducible rollou
 replace `branch:` with `ref:` using the SHAs in the verification's revisions.json.
 Do not update every unrelated application dependency as part of this step.
 
+OTP 0.3.0 requires Ruby 3.2+, Active Record >= 7.1 and < 9, ROTP >= 6.4 and < 7,
+RQRCode >= 3.2 and < 4, and rqrcode_core >= 2.1 and < 3. Update these dependencies
+with the plugin so that an old application lockfile does not retain earlier series.
+The plugin no longer loads `active_model_otp`; a separate application dependency on
+its released 2.3.4 version still conflicts with ROTP 6.4 and must be migrated too.
+The model helpers `otp_random_secret`, `otp_code` and `provisioning_uri` are retained.
+
 For applications using OTP 0.2.x:
 
 1. Configure Active Record encryption keys in application credentials/secret storage.
