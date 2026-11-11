@@ -28,7 +28,7 @@ class IntegrationTest
   def test_browser_translations_and_direct_uploads
     with_chrome do
       login
-      assert_text 'Admin Test'
+      assert_selector '.userbox .name', text: 'Admin Test'
       visit '/admin/articles/new'
       assert_text 'New Article'
       fill_in 'article_title_en', with: 'Browser article'
@@ -70,7 +70,7 @@ class IntegrationTest
       click_link 'Use a recovery code'
       fill_in 'Authentication or recovery code', with: codes.first
       click_button 'Verify and sign in'
-      assert_text 'Admin Test'
+      assert_selector '.userbox .name', text: 'Admin Test'
       visit '/admin/logout'
       login
       click_link 'Use a recovery code'

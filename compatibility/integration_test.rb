@@ -31,7 +31,7 @@ class IntegrationTest < Minitest::Test
     if @user.reload.otp_module?
       assert_current_path '/admin/otp/challenge'
     else
-      assert_text 'Admin Test'
+      assert_selector '.userbox .name', text: 'Admin Test'
     end
     if token && @user.otp_module?
       fill_in 'Authentication code', with: token
