@@ -74,7 +74,7 @@ for pipeline in sprockets-rails propshaft; do
       (cd "$repo_path" && run_logged "$log" env TRESTLE_TEST_GEM="$repo" "$suite_root/bin/run" exec rake)
     fi
     printf '%s / %s: ' "$pipeline" "$repo"
-    rg '^[1-9][0-9]* (examples|runs),' "$log"
+    grep -E '^[1-9][0-9]* (examples|runs),' "$log"
   done
   run_logged "$suite_root/logs/integration-$pipeline.log" "$suite_root/bin/run" exec ruby "$suite_root/integration_test.rb"
   tail -1 "$suite_root/logs/integration-$pipeline.log"
