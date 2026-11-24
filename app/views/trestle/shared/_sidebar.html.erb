@@ -19,7 +19,8 @@
 
           <% items.each do |item| %>
             <%= tag.li(class: ["nav-item", ("active" if current_navigation_item?(item))]) do %>
-              <%= link_to item.path, item.html_options.merge(data: { controller: "navigation-tooltip" }) do %>
+              <%# Turbo can remove this link before a Bootstrap fade completes. %>
+              <%= link_to item.path, item.html_options.merge(data: { controller: "navigation-tooltip", bs_animation: false }) do %>
                 <%= icon("nav-icon", item.icon) %>
                 <span class="nav-label" data-navigation-tooltip-target="label"><%= item.label %></span>
 
