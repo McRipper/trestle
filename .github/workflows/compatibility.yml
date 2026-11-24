@@ -50,6 +50,11 @@ jobs:
           repository: McRipper/trestle-mobility
           ref: master
           path: trestle-mobility
+      - uses: actions/checkout@v4
+        with:
+          repository: McRipper/trestle-tinymce
+          ref: 5ce9b905db6623aa32d0dadd2f16b1e5a5f36dfa
+          path: trestle-tinymce
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}

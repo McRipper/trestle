@@ -13,9 +13,10 @@ gem 'sqlite3', '>= 2.1'
 gem 'pg'
 gem 'good_job', '~> 4.0'
 gem 'mobility', '~> 1.0'
+gem 'tinymce-rails', '8.10.2', require: false
 
 gem 'trestle', path: repo_path.call('trestle')
-%w[trestle-auth trestle-auth-otp trestle-search trestle-active_storage trestle-good_job trestle-mobility].each do |name|
+%w[trestle-auth trestle-auth-otp trestle-search trestle-active_storage trestle-good_job trestle-mobility trestle-tinymce].each do |name|
   path = name == 'trestle-auth-otp' ? ENV.fetch('TRESTLE_OTP_PATH', repo_path.call(name)) : repo_path.call(name)
   gem name, path: path, require: ENV['TRESTLE_TEST_GEM'] == name ? name.tr('-', '/') : false
 end

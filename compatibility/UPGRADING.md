@@ -48,3 +48,15 @@ If moving from GoodJob 3, follow its supported staged migration to 3.99.x and th
 Storage services, DeepL calls, video/PDF previews and application-specific custom
 forms also need their own application tests. Image thumbnails use `resize_to_limit`
 with libvips and retain their aspect ratio.
+
+## TinyMCE 8
+
+For applications using the `tinymce` or `editor` form field, use the verified
+`McRipper/trestle-tinymce` revision from `revisions.json`. The compatibility
+suite resolves `tinymce-rails` 8.10.2. Remove custom `trestle/tinymce-5` and
+`trestle/tinymce-6` skin overrides to use the bundled Oxide skin.
+
+Set `license_key` for each self-hosted TinyMCE configuration before deploying.
+See the [TinyMCE licensing documentation](https://www.tiny.cloud/docs/tinymce/latest/license-key/)
+for GPL and commercial setup. Run `bin/rails assets:precompile` and verify
+that a formatted value can be created, saved and reopened in the admin.

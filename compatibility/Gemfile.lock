@@ -46,6 +46,13 @@ PATH
       trestle (~> 0.10.1)
 
 PATH
+  remote: ../../trestle-tinymce
+  specs:
+    trestle-tinymce (0.4.0)
+      tinymce-rails (>= 5.1, < 9)
+      trestle (~> 0.10.0)
+
+PATH
   remote: ..
   specs:
     trestle (0.10.1)
@@ -401,6 +408,8 @@ GEM
       mize (~> 0.6)
       readline
       sync
+    tinymce-rails (8.10.2)
+      railties (>= 3.1.1)
     tsort (0.2.0)
     turbo-rails (2.0.23)
       actionpack (>= 7.1.0)
@@ -448,6 +457,7 @@ DEPENDENCIES
   sprockets-rails
   sqlite3 (>= 2.1)
   timecop (~> 0.9)
+  tinymce-rails (= 8.10.2)
   trestle!
   trestle-active_storage!
   trestle-auth!
@@ -455,6 +465,7 @@ DEPENDENCIES
   trestle-good_job!
   trestle-mobility!
   trestle-search!
+  trestle-tinymce!
 
 BUNDLED WITH
    2.6.9

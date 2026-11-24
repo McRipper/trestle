@@ -2,7 +2,7 @@ require 'bundler/setup'
 require 'rails/all'
 Bundler.require(:default, :test)
 
-%w[auth auth/otp search active_storage good_job mobility].each { |plugin| require "trestle/#{plugin}" }
+%w[auth auth/otp search active_storage good_job mobility tinymce].each { |plugin| require "trestle/#{plugin}" }
 
 class CompatibilityApp < Rails::Application
   config.root = File.expand_path('..', __dir__)
@@ -28,5 +28,11 @@ class CompatibilityApp < Rails::Application
   config.active_storage.queues.purge = :default
   config.i18n.available_locales = [:en, :it]
   config.logger = Logger.new(File.expand_path('../../logs/integration-rails.log', __dir__))
-  config.assets.prefix = "/assets-#{ENV.fetch('ASSET_PIPELINE', 'sprockets-rails')}"
+  asset_pipeline = ENV.fetch('ASSET_PIPELINE', 'sprockets-rails')
+  config.assets.prefix = "/assets-#{asset_pipeline}"
+  if ENV['PRECOMPILED_ASSETS'] == '1'
+    config.public_file_server.enabled = true
+    config.assets.compile = false if asset_pipeline == 'sprockets-rails'
+    config.assets.server = false if asset_pipeline == 'propshaft'
+  end
 end

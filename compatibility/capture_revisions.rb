@@ -3,7 +3,7 @@ require 'open3'
 require 'time'
 
 workspace, output = ARGV
-names = %w[trestle trestle-auth trestle-auth-otp trestle-search trestle-active_storage trestle-good_job trestle-mobility]
+names = %w[trestle trestle-auth trestle-auth-otp trestle-search trestle-active_storage trestle-good_job trestle-mobility trestle-tinymce]
 repositories = names.to_h do |name|
   directory = name == 'trestle-auth-otp' ? ENV.fetch('TRESTLE_OTP_PATH', File.join(workspace, name)) : File.join(workspace, name)
   head, status = Open3.capture2('git', '-C', directory, 'rev-parse', 'HEAD')

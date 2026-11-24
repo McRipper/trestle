@@ -1,13 +1,15 @@
 # Cross-plugin compatibility
 
-This harness runs the seven repository suites, integration flows, Chrome tests
+This harness runs the eight repository suites, integration flows, Chrome tests
 and asset compilation with both Sprockets and Propshaft on Rails 8.1. It uses
 the current checkouts, including OTP 0.3.0. Old snapshot worktrees are never
 selected automatically.
 
 Place `trestle`, `trestle-auth`, `trestle-auth-otp`, `trestle-search`,
-`trestle-active_storage`, `trestle-good_job` and `trestle-mobility` next to each
-other. Requirements: Ruby 3.3/3.4, Bundler 2.6.9, PostgreSQL, libvips and Chrome.
+`trestle-active_storage`, `trestle-good_job`, `trestle-mobility` and
+`trestle-tinymce` next to each other. The TinyMCE checkout must support
+`tinymce-rails` 8.10.2, which this harness pins. The suite uses Ruby 3.3 or 3.4,
+Bundler 2.6.9, PostgreSQL, libvips and Chrome.
 The GitHub workflow repeats the complete matrix on both Ruby versions.
 
 ```sh
@@ -43,7 +45,11 @@ Coverage includes login/logout, enrollment and one-use recovery codes, the
 GoodJob mount while an OTP challenge is pending, actual queued jobs on PostgreSQL,
 search, translated fields, single/multiple direct uploads, deletion and libvips
 image previews. Chrome runs with CSRF protection enabled and checks JavaScript
-errors. The plugin's own tests cover integer/UUID attachment identifiers and the
+errors. TinyMCE tests use a real editor on each asset pipeline. They verify
+content retained after validation and the editor restored by Turbo Back. After
+precompilation, Chrome checks the toolbar, inserts a link and saves and reopens
+formatted content. The fixture explicitly chooses the TinyMCE GPL license.
+The Active Storage plugin's own tests cover integer/UUID attachment identifiers and the
 atomic consumption of OTP/recovery codes is verified by parallel DB connections.
 
 The application upgrade instructions are in [UPGRADING.md](UPGRADING.md).

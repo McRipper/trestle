@@ -34,6 +34,8 @@ ActiveRecord::Schema.define do
       t.timestamps
     end
   end
+  add_column :articles, :rich_text, :text unless column_exists?(:articles, :rich_text)
+  add_column :articles, :summary, :text unless column_exists?(:articles, :summary)
 end
 
 unless ActiveRecord::Base.connection.table_exists?(:active_storage_blobs)
